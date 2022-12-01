@@ -54,7 +54,7 @@ score.sentiment = function(kalimat2, kata.positif, kata.negatif,
 hasil = score.sentiment(kalimat2$text, kata.positif, kata.negatif)
 View(hasil)
 
-#CONVERT SCORE TO SENTIMENT
+#konversi skore ke sentimen
 hasil$klasifikasi<- ifelse(hasil$score<0,"Negatif", "Positif")
 hasil$klasifikasi
 View(hasil)
@@ -81,8 +81,11 @@ dtMatrix = create_matrix(cf["text"], language = "id", removeStopwords = FALSE,
 #mat = as.matrix(dtMatrix)
 container = create_container(dtMatrix, cf$klasifikasi, trainSize = 1251:2500, testSize = 1:1250, virgin = FALSE)
 #Modeling
+#kernel= linear, polynomial, radial,sigmoid
 model = train_model(container, "SVM", kernel = "linear", cost = 1)
+model
 
+#Prediksi
 result = classify_model(container, model)
 result$SVM_LABEL = factor(result$SVM_LABEL)
 confussionMatrix = confusionMatrix(cf$klasifikasi[1:1250], result[,"SVM_LABEL"])
@@ -93,7 +96,7 @@ Memanggil library tambahan yang akan digunakan untuk penggunaan corpus dalam pro
 
 ```{r}
 require (corpus)
-df<-read.csv("ReviewBibitClean2.csv",stringsAsFactors = FALSE)
+df<-read.csv("pelabelan.csv",stringsAsFactors = FALSE)
 glimpse(df)
 set.seed(20)
 df<-df[sample(nrow(df)),]
@@ -166,6 +169,7 @@ ui <- fluidPage(
         mainPanel(
             
             tabsetPanel(type = "tabs",
+                        #Output Bagan
                         tabPanel("Bagan", plotOutput("scatterplot")),
                         #Output Frequensi
                         tabPanel("FreqWord", plotOutput("freqplot")), 
@@ -189,7 +193,7 @@ server <- function(input, output) {
       s<-get_nrc_sentiment(review)
       review_combine<-cbind(produk_dataset$text,s)
       par(mar=rep(3,4))
-      barplot(colSums(s),col=c('gray'),ylab='count',main='Sentimen Analisis Ulasan Bibit')
+      barplot(colSums(s),col=rainbow(10),ylab='count',main='Sentimen Analisis Ulasan Bibit')
           }, height=400)
     # Output Freq Plot
     output$freqplot <- renderPlot({data1 = read.csv("pelabelan.csv")
@@ -206,7 +210,7 @@ server <- function(input, output) {
     v <- sort(rowSums(m),decreasing=TRUE)
     d <- data.frame(word = names(v),freq=v)
 
-barplot(d[1:20,]$freq, las = 2, names.arg = d[1:20,]$word, col=rainbow(5),
+  barplot(d[1:20,]$freq, las = 2, names.arg = d[1:20,]$word, col=rainbow(5),
         main = "Kata Paling Sering Muncul", ylab = "Frekuensi")
           }, height=400)
     
